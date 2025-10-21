@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jergan Studio Login</title>
+  <title>Jergan Studio</title>
   <style>
     body {
-      background: radial-gradient(circle at center, #1a1a1a, #000);
+      background: radial-gradient(circle at center, #111, #000);
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -16,31 +16,29 @@
       font-family: "Segoe UI", Arial, sans-serif;
       text-align: center;
       margin: 0;
+      overflow: hidden;
     }
     h1 {
-      font-size: 2rem;
+      font-size: 2.5rem;
       margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(76, 91, 255, 0.8);
     }
     p {
-      font-size: 1rem;
-      color: #aaa;
-      margin-bottom: 20px;
+      font-size: 1.2rem;
+      color: #bbb;
+      margin-bottom: 30px;
     }
-    button {
-      background-color: #4c5bff;
-      border: none;
-      color: #fff;
-      padding: 14px 28px;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s ease;
-      box-shadow: 0 0 10px rgba(76, 91, 255, 0.5);
+    .loader {
+      width: 80px;
+      height: 80px;
+      border: 6px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #4c5bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
     }
-    button:hover {
-      background-color: #3a47d4;
-      box-shadow: 0 0 15px rgba(76, 91, 255, 0.8);
-      transform: scale(1.05);
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
     footer {
       position: absolute;
@@ -51,31 +49,16 @@
   </style>
 </head>
 <body>
-  <h1>Welcome to Jergan Studio</h1>
-  <p>Login to continue to the home page</p>
-  <button id="loginBtn">Login with AuthPro</button>
-
+  <h1>Jergan Studio</h1>
+  <p>Loading home page...</p>
+  <div class="loader"></div>
   <footer>© 2025 Jergan Studio</footer>
 
   <script>
-    // Check if user is already logged in using AuthPro's cookie/session
-    // (AuthPro sets a cookie for logged-in users)
-    fetch("https://www.authpro.com/auth/Idkwhatwillne/check.cgi")
-      .then(res => res.text())
-      .then(text => {
-        if (text.includes("OK")) {
-          // Already logged in — go straight to home page
-          window.location.href = "https://jergan-studio.github.io/jergan-studio/";
-        }
-      })
-      .catch(() => {
-        // If the check fails, just stay on this page
-      });
-
-    // When user clicks login
-    document.getElementById("loginBtn").addEventListener("click", function() {
-      window.location.href = "https://www.authpro.com/auth/Idkwhatwillne/?ret=https://jergan-studio.github.io/jergan-studio/";
-    });
+    // Automatically go to home page after short loading
+    setTimeout(() => {
+      window.location.href = "https://jergan-studio.github.io/jergan-studio/";
+    }, 2000); // wait 2 seconds before redirect
   </script>
 </body>
 </html>
