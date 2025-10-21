@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jergan Studio Login</title>
+  <style>
+    body {
+      background: radial-gradient(circle at center, #1a1a1a, #000);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: "Segoe UI", Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1rem;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: #4c5bff;
+      border: none;
+      color: #fff;
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      box-shadow: 0 0 10px rgba(76, 91, 255, 0.5);
+    }
+    button:hover {
+      background-color: #3a47d4;
+      box-shadow: 0 0 15px rgba(76, 91, 255, 0.8);
+      transform: scale(1.05);
+    }
+    footer {
+      position: absolute;
+      bottom: 10px;
+      font-size: 0.8rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to Jergan Studio</h1>
+  <p>Login to continue to the home page</p>
+  <button id="loginBtn">Login with AuthPro</button>
+
+  <footer>© 2025 Jergan Studio</footer>
+
+  <script>
+    // Check if user is already logged in using AuthPro's cookie/session
+    // (AuthPro sets a cookie for logged-in users)
+    fetch("https://www.authpro.com/auth/Idkwhatwillne/check.cgi")
+      .then(res => res.text())
+      .then(text => {
+        if (text.includes("OK")) {
+          // Already logged in — go straight to home page
+          window.location.href = "https://jergan-studio.github.io/jergan-studio/";
+        }
+      })
+      .catch(() => {
+        // If the check fails, just stay on this page
+      });
+
+    // When user clicks login
+    document.getElementById("loginBtn").addEventListener("click", function() {
+      window.location.href = "https://www.authpro.com/auth/Idkwhatwillne/?ret=https://jergan-studio.github.io/jergan-studio/";
+    });
+  </script>
+</body>
+</html>
