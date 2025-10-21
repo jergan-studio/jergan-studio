@@ -1,592 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Jergan Studio — Scriptable Editor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jergan Studio</title>
 <style>
-  :root{
-    --bg:#0b0b0f; --panel:#111; --muted:#9ea6b8; --accent:#4c5bff;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;height:100vh;font-family:Inter,Segoe UI,Arial;background:radial-gradient(circle at 10% 10%, #0f1220, #060608);color:#eaf0ff;display:flex;flex-direction:column}
-  header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-bottom:1px solid rgba(255,255,255,0.02)}
-  header h1{margin:0;color:var(--accent)}
-  main{display:flex;flex:1;overflow:hidden}
-  /* left panel / home */
-  .left{width:360px;background:var(--panel);padding:14px;overflow:auto;border-right:1px solid rgba(255,255,255,0.03)}
-  .right{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:18px;overflow:auto}
-  .btn{background:var(--accent);border:none;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
-  .ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
-  h2{margin:8px 0 6px 0}
-  .card{background:#111;padding:12px;border-radius:10px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.02)}
-  #gameList .card{display:flex;flex-direction:column;gap:8px}
-  /* editor stage */
-  #stage-wrap{width:100%;max-width:980px;display:flex;flex-direction:column;align-items:center}
-  #toolbar{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-  #stage{width:900px;height:540px;background:linear-gradient(180deg,#0b0b0f,#050507);border-radius:12px;border:1px solid rgba(255,255,255,0.03);position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
-  .sprite{position:absolute;width:64px;height:64px;border-radius:50%;background:#ff6b6b;display:flex;align-items:center;justify-content:center;user-select:none;touch-action:none;cursor:grab;transform-origin:center center}
-  .sprite.selected{outline:3px solid rgba(76,91,255,0.25)}
-  .controls{display:flex;gap:8px;align-items:center}
-  .sidebar-right{width:340px;background:#0f1116;padding:12px;border-left:1px solid rgba(255,255,255,0.02);overflow:auto}
-  label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
-  input[type="text"], textarea, select, input[type=number]{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#fff}
-  textarea{height:160px;font-family:monospace;resize:vertical}
-  footer{padding:8px;text-align:center;color:#8b93a5;background:transparent}
-  .small{font-size:12px;color:var(--muted)}
-  .row{display:flex;gap:8px}
+*{box-sizing:border-box}body{margin:0;font-family:'Segoe UI',sans-serif;background:#0d0d0d;color:white}
+header{background:#111;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0;color:#4c5bff}nav a{color:#ccc;text-decoration:none;margin-left:15px}nav a:hover{color:white}
+button{background:#4c5bff;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:15px;cursor:pointer;transition:.2s}button:hover{background:#3b48cc}
+main{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:calc(100vh - 70px)}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;width:90%;max-width:900px;margin-top:30px}
+.card{background:#1a1a1a;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(76,91,255,0.2)}.card h3{margin:0 0 10px}
+#editorPage{display:none;flex-direction:column;height:100vh}
+#toolbar{background:#111;padding:10px;display:flex;justify-content:space-between;align-items:center}
+#stage{flex:1;margin:10px auto;background:#1a1a1a;border:2px solid #4c5bff;width:800px;height:480px;position:relative;overflow:hidden}
+.sprite{width:64px;height:64px;border-radius:50%;background:#ff4747;position:absolute;cursor:move;user-select:none}
+#codeArea{width:100%;height:150px;background:#111;color:#0f0;font-family:monospace;border:none;padding:10px;resize:none}
+footer{text-align:center;padding:10px;background:#0a0a0a;color:#777}
 </style>
 </head>
 <body>
+
 <header>
   <h1>Jergan Studio</h1>
-  <div class="controls">
-    <button id="btnHome" class="ghost">Home</button>
-    <button id="btnEditor" class="btn">Open Editor</button>
-  </div>
+  <nav>
+    <a href="#" id="homeLink">Home</a>
+    <a href="#" id="editorLink">Editor</a>
+  </nav>
 </header>
 
-<main>
-  <div class="left">
-    <h2>Home</h2>
-    <div class="card">
-      <div class="row" style="justify-content:space-between;align-items:center">
-        <div>
-          <div class="small">Projects</div>
-          <strong id="projectCount">0 saved</strong>
-        </div>
-        <div>
-          <button id="btnNewProject" class="btn">New Project</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="gameList"></div>
-
-    <div class="card">
-      <div class="small">Share / Backup</div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="btnExportProject" class="ghost">Copy Project JSON</button>
-        <button id="btnImportProject" class="ghost">Import JSON</button>
-      </div>
-      <div class="small" style="margin-top:8px">Tip: use the editor on the right to build games. Save to store them locally.</div>
-    </div>
-  </div>
-
-  <div class="right">
-    <div id="stage-wrap">
-      <div id="toolbar">
-        <div class="row">
-          <button id="addCircle" class="btn">Add Circle</button>
-          <button id="uploadSprite" class="ghost">Upload Sprite</button>
-          <button id="playBtn" class="btn">Play</button>
-          <button id="stopBtn" class="ghost" style="display:none">Stop</button>
-          <button id="saveProject" class="btn">Save Project</button>
-          <button id="shareProject" class="ghost">Share</button>
-        </div>
-        <div class="small">Mode: <span id="modeLabel">Edit</span></div>
-      </div>
-
-      <div id="stage"></div>
-    </div>
-  </div>
-
-  <div class="sidebar-right">
-    <h2>Inspector</h2>
-    <div class="card">
-      <label>Selected sprite</label>
-      <div id="selInfo" class="small">None</div>
-      <label>Name</label>
-      <input id="spriteName" type="text" placeholder="Sprite name">
-      <div class="row" style="margin-top:8px">
-        <div style="flex:1"><label>X</label><input id="spriteX" type="number"></div>
-        <div style="flex:1"><label>Y</label><input id="spriteY" type="number"></div>
-      </div>
-      <div class="row" style="margin-top:8px">
-        <div style="flex:1"><label>W</label><input id="spriteW" type="number"></div>
-        <div style="flex:1"><label>H</label><input id="spriteH" type="number"></div>
-      </div>
-
-      <div style="margin-top:8px">
-        <label>Script (text)</label>
-        <small class="small">Use <code>async function onStart(){}</code>, <code>async function onClick(){}</code>, <code>async function onUpdate(dt){}</code></small>
-        <textarea id="scriptArea" placeholder="// example:\nasync function onStart(){\n  for(let i=0;i<5;i++){ move(30,0); await wait(200); }\n}"></textarea>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="applyProps" class="btn">Apply</button>
-          <button id="deleteSprite" class="ghost">Delete</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <label>Project Info</label>
-      <input id="projectTitle" type="text" placeholder="Project title">
-      <label style="margin-top:8px">Project Description</label>
-      <textarea id="projectDesc"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="btnSaveProjectMeta" class="btn">Save Meta</button>
-        <button id="btnClearStorage" class="ghost">Clear Saved</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <label>Quick Help</label>
-      <div class="small">
-        <ul>
-          <li><strong>onStart()</strong> runs once when Play starts.</li>
-          <li><strong>onClick()</strong> runs when sprite clicked during Play.</li>
-          <li><strong>onUpdate(dt)</strong> runs every frame; dt = seconds.</li>
-          <li>Helpers: <code>move(dx,dy)</code>, <code>setPosition(x,y)</code>, <code>getPosition()</code>, <code>rotate(deg)</code>, <code>rotateBy(deg)</code>, <code>scale(s)</code>, <code>hide()</code>, <code>show()</code>, <code>wait(ms)</code>.</li>
-        </ul>
-      </div>
-    </div>
-  </div>
+<!-- HOME -->
+<main id="homePage">
+  <h2>Welcome to Jergan Studio</h2>
+  <p>Create and share browser-based games.</p>
+  <button id="newProject">🎮 New Project</button>
+  <div id="gameList" class="games"></div>
 </main>
+
+<!-- EDITOR -->
+<div id="editorPage">
+  <div id="toolbar">
+    <div>
+      <button id="addCircle">Add Circle</button>
+      <button id="uploadSprite">Upload Sprite</button>
+      <button id="runCode">▶ Run Code</button>
+      <button id="saveGame">💾 Save Game</button>
+    </div>
+    <button id="goHome">🏠 Home</button>
+  </div>
+  <div id="stage"></div>
+  <textarea id="codeArea" placeholder="// Write code for the selected sprite here"></textarea>
+</div>
 
 <footer>© 2025 Jergan Studio</footer>
 
 <script>
-/* ========= Project model ========= */
-let project = {
-  meta: {title: "Untitled", description: "", created: Date.now()},
-  sprites: [] // each: {id,x,y,w,h,src,isImage,name,script}
-};
+document.addEventListener("DOMContentLoaded",()=>{
+  const home=document.getElementById("homePage");
+  const editor=document.getElementById("editorPage");
+  const stage=document.getElementById("stage");
+  const codeArea=document.getElementById("codeArea");
+  const gameList=document.getElementById("gameList");
+  let selected=null;
+  const scripts=new Map();
 
-const stage = document.getElementById('stage');
-const gameList = document.getElementById('gameList');
-const projectCount = document.getElementById('projectCount');
-const modeLabel = document.getElementById('modeLabel');
+  // --- Navigation
+  function showHome(){home.style.display="flex";editor.style.display="none";loadGames();}
+  function showEditor(){home.style.display="none";editor.style.display="flex";stage.innerHTML="";scripts.clear();selected=null;codeArea.value="";}
+  document.getElementById("homeLink").onclick=e=>{e.preventDefault();showHome();}
+  document.getElementById("editorLink").onclick=e=>{e.preventDefault();showEditor();}
+  document.getElementById("newProject").onclick=showEditor;
+  document.getElementById("goHome").onclick=showHome;
 
-let selectedId = null;
-let isPlaying = false;
-let runtimes = {}; // per-sprite runtime objects
-
-/* ===== util ===== */
-function uid() { return 's' + Math.random().toString(36).slice(2,9); }
-function showToast(msg){ console.log(msg); /* small console fallback */ }
-
-/* ===== persistence ===== */
-function saveToStorage(){
-  const saved = JSON.parse(localStorage.getItem('jerganProjectsV1')||'[]');
-  // For simplicity: this saves only one "current" project appended -- we replace first if title matches
-  const entry = {meta: project.meta, project};
-  // Remove same title
-  const filtered = saved.filter(s=>s.meta?.title !== project.meta.title);
-  filtered.unshift(entry);
-  localStorage.setItem('jerganProjectsV1', JSON.stringify(filtered));
-  renderHomeList();
-  showToast('Project saved locally');
-}
-
-function renderHomeList(){
-  const saved = JSON.parse(localStorage.getItem('jerganProjectsV1')||'[]');
-  gameList.innerHTML = '';
-  projectCount.textContent = saved.length + ' saved';
-  if(saved.length === 0){
-    gameList.innerHTML = '<div class="card small">No saved projects yet.</div>';
-    return;
-  }
-  saved.forEach((entry, idx)=>{
-    const el = document.createElement('div'); el.className='card';
-    el.innerHTML = `<strong>${entry.meta.title||'Untitled'}</strong>
-      <div class="small" style="margin-top:6px">${entry.meta.description||''}</div>
-      <div style="margin-top:8px;display:flex;gap:8px">
-        <button class="btn" data-idx="${idx}" onclick="loadProject(${idx})">Load</button>
-        <button class="ghost" onclick="openProjectPlay(${idx})">Play</button>
-        <button class="ghost" onclick="copyProjectJSON(${idx})">Copy JSON</button>
-      </div>`;
-    gameList.appendChild(el);
-  });
-}
-
-function loadProject(idx){
-  const saved = JSON.parse(localStorage.getItem('jerganProjectsV1')||'[]');
-  if(!saved[idx]) return alert('Not found');
-  project = saved[idx].project;
-  project.meta = saved[idx].meta || project.meta;
-  rebuildStage();
-  showEditor();
-}
-
-function openProjectPlay(idx){
-  const saved = JSON.parse(localStorage.getItem('jerganProjectsV1')||'[]');
-  if(!saved[idx]) return alert('Not found');
-  // open a new window with the project's playable HTML
-  const html = buildPlayHTML(saved[idx].project);
-  const blob = new Blob([html], {type:'text/html'});
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-}
-
-function copyProjectJSON(idx){
-  const saved = JSON.parse(localStorage.getItem('jerganProjectsV1')||'[]');
-  if(!saved[idx]) return alert('Not found');
-  navigator.clipboard.writeText(JSON.stringify(saved[idx].project,null,2));
-  alert('Project JSON copied to clipboard');
-}
-
-document.getElementById('btnExportProject').addEventListener('click', ()=>{
-  navigator.clipboard.writeText(JSON.stringify(project,null,2));
-  alert('Project JSON copied');
-});
-document.getElementById('btnImportProject').addEventListener('click', ()=>{
-  const txt = prompt('Paste project JSON here');
-  if(!txt) return;
-  try{ project = JSON.parse(txt); rebuildStage(); showEditor(); alert('Imported'); }
-  catch(e){ alert('Invalid JSON'); }
-});
-
-/* ===== UI actions ===== */
-document.getElementById('btnEditor').addEventListener('click', showEditor);
-document.getElementById('btnHome').addEventListener('click', showHome);
-document.getElementById('btnNewProject').addEventListener('click', ()=>{
-  if(!confirm('Create new project? Unsaved changes will be lost.')) return;
-  project = {meta:{title:'Untitled',description:'',created:Date.now()},sprites:[]};
-  selectedId = null; rebuildStage(); showEditor();
-});
-document.getElementById('addCircle').addEventListener('click', ()=>{
-  const id = uid();
-  const s = {id,x:100+Math.random()*200,y:80+Math.random()*200,w:64,h:64,src:null,isImage:false,name:'circle',script:'',rotation:0,scale:1};
-  project.sprites.push(s);
-  addSpriteDOM(s);
-});
-document.getElementById('uploadSprite').addEventListener('click', ()=>{
-  const inp = document.createElement('input'); inp.type='file'; inp.accept='image/*';
-  inp.onchange = e=>{
-    const f = e.target.files[0];
-    if(!f) return;
-    const r = new FileReader();
-    r.onload = ()=> {
-      const id = uid();
-      const s = {id,x:100+Math.random()*200,y:80+Math.random()*200,w:96,h:96,src:r.result,isImage:true,name:f.name,script:'',rotation:0,scale:1};
-      project.sprites.push(s);
-      addSpriteDOM(s);
+  // --- Draggable Sprites
+  function makeDraggable(el){
+    let drag=false,ox=0,oy=0;
+    el.onmousedown=e=>{drag=true;ox=e.offsetX;oy=e.offsetY;selectSprite(el);}
+    document.onmouseup=()=>drag=false;
+    document.onmousemove=e=>{
+      if(!drag)return;
+      const rect=stage.getBoundingClientRect();
+      el.style.left=e.clientX-rect.left-ox+"px";
+      el.style.top=e.clientY-rect.top-oy+"px";
     };
-    r.readAsDataURL(f);
-  };
-  inp.click();
-});
-
-document.getElementById('saveProject').addEventListener('click', ()=> {
-  project.meta.title = document.getElementById('projectTitle').value || project.meta.title;
-  project.meta.description = document.getElementById('projectDesc').value || project.meta.description;
-  saveToStorage();
-});
-document.getElementById('shareProject').addEventListener('click', ()=>{
-  navigator.clipboard.writeText(JSON.stringify(project,null,2));
-  alert('Project JSON copied — share or save it!');
-});
-document.getElementById('btnSaveProjectMeta').addEventListener('click', ()=>{
-  project.meta.title = document.getElementById('projectTitle').value || project.meta.title;
-  project.meta.description = document.getElementById('projectDesc').value || project.meta.description;
-  alert('Meta saved');
-});
-document.getElementById('btnClearStorage').addEventListener('click', ()=>{
-  if(confirm('Clear all saved projects from localStorage?')){ localStorage.removeItem('jerganProjectsV1'); renderHomeList(); alert('Cleared'); }
-});
-
-/* ===== Stage and DOM building ===== */
-function rebuildStage(){
-  // clear DOM stage and re-create
-  stage.innerHTML = '';
-  project.sprites.forEach(s => addSpriteDOM(s));
-  // set meta inputs
-  document.getElementById('projectTitle').value = project.meta.title || '';
-  document.getElementById('projectDesc').value = project.meta.description || '';
-  renderHomeList();
-}
-
-function addSpriteDOM(s){
-  const el = document.createElement('div');
-  el.className = 'sprite';
-  el.dataset.id = s.id;
-  el.style.left = s.x + 'px';
-  el.style.top = s.y + 'px';
-  el.style.width = s.w + 'px';
-  el.style.height = s.h + 'px';
-  el.style.transform = `rotate(${s.rotation||0}deg) scale(${s.scale||1})`;
-  if(s.isImage && s.src){ el.style.backgroundImage = `url(${s.src})`; el.style.backgroundSize='cover'; el.style.borderRadius = '8px'; }
-  else { el.style.background = '#4c5bff'; el.style.borderRadius='50%'; el.textContent=''; }
-  // pointer drag in edit mode
-  attachDragToSprite(el, s.id);
-  stage.appendChild(el);
-  // click selection
-  el.addEventListener('click', (ev)=> {
-    ev.stopPropagation();
-    selectSprite(s.id);
-  });
-  // double click opens inspector script
-  el.addEventListener('dblclick', (ev)=>{
-    ev.stopPropagation();
-    selectSprite(s.id);
-    document.getElementById('scriptArea').focus();
-  });
-}
-
-function attachDragToSprite(el, id){
-  let dragging=false, ox=0, oy=0;
-  el.addEventListener('pointerdown', (e)=>{
-    if(isPlaying) return; // disable drag in play
-    dragging=true; el.setPointerCapture(e.pointerId);
-    el.style.cursor='grabbing';
-    const r = el.getBoundingClientRect();
-    ox = e.clientX - r.left; oy = e.clientY - r.top;
-  });
-  window.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    const rect = stage.getBoundingClientRect();
-    let nx = e.clientX - rect.left - ox;
-    let ny = e.clientY - rect.top - oy;
-    nx = Math.max(0, Math.min(nx, stage.clientWidth - 8));
-    ny = Math.max(0, Math.min(ny, stage.clientHeight - 8));
-    el.style.left = nx + 'px'; el.style.top = ny + 'px';
-    // update model in real time
-    const sp = project.sprites.find(s=>s.id===id); if(sp){ sp.x = nx; sp.y = ny; }
-    // update inspector if selected
-    if(selectedId === id){ document.getElementById('spriteX').value = Math.round(nx); document.getElementById('spriteY').value = Math.round(ny); }
-  });
-  window.addEventListener('pointerup', ()=>{
-    if(dragging){ dragging=false; el.style.cursor='grab'; saveModelFromDOM(); }
-  });
-}
-
-stage.addEventListener('click', ()=>{ // deselect when clicking empty stage
-  if(isPlaying) return;
-  selectSprite(null);
-});
-
-/* ===== Inspector logic ===== */
-function selectSprite(id){
-  selectedId = id;
-  document.querySelectorAll('.sprite').forEach(el=> el.classList.toggle('selected', el.dataset.id === id));
-  const info = document.getElementById('selInfo');
-  if(!id){ info.textContent = 'None'; document.getElementById('spriteName').value = ''; document.getElementById('spriteX').value=''; document.getElementById('spriteY').value=''; document.getElementById('spriteW').value=''; document.getElementById('spriteH').value=''; document.getElementById('scriptArea').value=''; return; }
-  const s = project.sprites.find(x => x.id === id);
-  if(!s) return;
-  info.textContent = s.name || s.id;
-  document.getElementById('spriteName').value = s.name || '';
-  document.getElementById('spriteX').value = Math.round(s.x);
-  document.getElementById('spriteY').value = Math.round(s.y);
-  document.getElementById('spriteW').value = Math.round(s.w);
-  document.getElementById('spriteH').value = Math.round(s.h);
-  document.getElementById('scriptArea').value = s.script || '';
-}
-
-document.getElementById('applyProps').addEventListener('click', ()=>{
-  if(!selectedId) return alert('Select a sprite first');
-  const s = project.sprites.find(x=>x.id===selectedId);
-  s.name = document.getElementById('spriteName').value || s.name;
-  s.x = parseFloat(document.getElementById('spriteX').value) || s.x;
-  s.y = parseFloat(document.getElementById('spriteY').value) || s.y;
-  s.w = parseFloat(document.getElementById('spriteW').value) || s.w;
-  s.h = parseFloat(document.getElementById('spriteH').value) || s.h;
-  s.script = document.getElementById('scriptArea').value || '';
-  // update DOM
-  const el = stage.querySelector(`.sprite[data-id="${s.id}"]`);
-  if(el){
-    el.style.left = s.x + 'px'; el.style.top = s.y + 'px';
-    el.style.width = s.w + 'px'; el.style.height = s.h + 'px';
-    if(s.isImage && s.src) { el.style.backgroundImage = `url(${s.src})`; el.style.backgroundSize='cover'; el.style.borderRadius='8px'; }
-    else { el.style.background='linear-gradient(135deg,#4c5bff,#6b8bff)'; el.style.borderRadius='50%'; }
   }
-  saveModelFromDOM();
-  showToast('Applied');
-});
-
-document.getElementById('deleteSprite').addEventListener('click', ()=>{
-  if(!selectedId) return;
-  if(!confirm('Delete sprite?')) return;
-  project.sprites = project.sprites.filter(s=>s.id!==selectedId);
-  const el = stage.querySelector(`.sprite[data-id="${selectedId}"]`);
-  if(el) el.remove();
-  selectedId = null; selectSprite(null);
-});
-
-/* ===== Save model helper ===== */
-function saveModelFromDOM(){
-  // sync positions/sizes into model
-  document.querySelectorAll('.sprite').forEach(el=>{
-    const id = el.dataset.id;
-    const s = project.sprites.find(x=>x.id===id);
-    if(s){
-      s.x = parseFloat(el.style.left) || s.x;
-      s.y = parseFloat(el.style.top) || s.y;
-      s.w = parseFloat(el.style.width) || s.w;
-      s.h = parseFloat(el.style.height) || s.h;
-    }
-  });
-}
-
-/* ===== Play engine (runs scripts) ===== */
-function buildRunnerForSprite(s){
-  // returns object with run(), stop()
-  const el = stage.querySelector(`.sprite[data-id="${s.id}"]`);
-  if(!el) return null;
-
-  // helper API functions (synchronous & asynchronous)
-  const api = {
-    move: (dx,dy)=>{ el.style.left = (parseFloat(el.style.left)||0) + (dx||0) + 'px'; el.style.top = (parseFloat(el.style.top)||0) + (dy||0) + 'px';},
-    setPosition: (x,y)=>{ el.style.left = x + 'px'; el.style.top = y + 'px'; },
-    getPosition: ()=>({ x: parseFloat(el.style.left)||0, y: parseFloat(el.style.top)||0 }),
-    rotate: (deg)=>{ el.style.transform = `rotate(${deg}deg)`; },
-    rotateBy: (deg)=>{ const cur = (el._rot||0); el._rot = cur + deg; el.style.transform = `rotate(${el._rot}deg)`; },
-    scale: (scl)=>{ el.style.transform = `scale(${scl})`; },
-    hide: ()=>{ el.style.display = 'none'; },
-    show: ()=>{ el.style.display = 'block'; },
-    wait: (ms)=> new Promise(res => setTimeout(res, ms))
-  };
-
-  // wrapper to safely execute user's script and extract handlers
-  let handlers = { onStart:null, onClick:null, onUpdate:null };
-  try{
-    // Wrap script so helper names are available as direct identifiers
-    const wrapper = `(function(api){
-      const {move,setPosition,getPosition,rotate,rotateBy,scale,hide,show,wait} = api;
-      ${s.script || ''}
-      return {
-        onStart: typeof onStart === 'function' ? onStart : null,
-        onClick: typeof onClick === 'function' ? onClick : null,
-        onUpdate: typeof onUpdate === 'function' ? onUpdate : null
-      }
-    })`;
-    const fn = eval(wrapper);
-    handlers = fn(api);
-  } catch(e){
-    console.warn('Script error for sprite', s.id, e);
-    // leave handlers null
+  function selectSprite(el){
+    selected=el;
+    document.querySelectorAll(".sprite").forEach(s=>s.style.outline="none");
+    el.style.outline="2px solid #4c5bff";
+    codeArea.value=scripts.get(el)||"";
   }
 
-  // runtime state
-  let running = false;
-  let updateHandle = null;
+  // --- Add Circle
+  document.getElementById("addCircle").onclick=()=>{
+    const el=document.createElement("div");
+    el.className="sprite";
+    el.style.left=Math.random()*700+"px";
+    el.style.top=Math.random()*400+"px";
+    stage.appendChild(el);
+    makeDraggable(el);
+  };
 
-  const run = async ()=>{
-    running = true;
-    // ensure visible
-    el.style.display = 'block';
-    // onStart (if async)
-    if(handlers.onStart) {
-      try { await handlers.onStart(); } catch(e){ console.warn('onStart error', e); }
-    }
-    // click handler wiring
-    const clickFn = async (ev)=>{ if(!running) return; if(handlers.onClick){ try{ await handlers.onClick(); }catch(e){console.warn('onClick err',e);} } };
-    el.addEventListener('click', clickFn);
-    // update loop if provided
-    if(handlers.onUpdate){
-      let last = performance.now();
-      const loop = async ()=>{
-        if(!running) return;
-        const now = performance.now(); const dt = (now - last)/1000; last = now;
-        try{ handlers.onUpdate(dt); } catch(e){ console.warn('onUpdate error', e); }
-        requestAnimationFrame(loop);
+  // --- Upload Sprite
+  document.getElementById("uploadSprite").onclick=()=>{
+    const input=document.createElement("input");
+    input.type="file";input.accept="image/*";
+    input.onchange=e=>{
+      const file=e.target.files[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=()=>{
+        const el=document.createElement("div");
+        el.className="sprite";
+        el.style.backgroundImage=`url(${reader.result})`;
+        el.style.backgroundSize="cover";
+        el.style.borderRadius="0";
+        el.style.left=Math.random()*700+"px";
+        el.style.top=Math.random()*400+"px";
+        stage.appendChild(el);
+        makeDraggable(el);
       };
-      requestAnimationFrame(loop);
-      updateHandle = loop;
-    }
-    // store stop method
-    runtimes[s.id] = { stop: ()=>{
-      running = false;
-      el.removeEventListener('click', clickFn);
-      // nothing else special — script internal awaits will continue if awaiting wait(); that's expected
-    }};
+      reader.readAsDataURL(file);
+    };
+    input.click();
   };
 
-  const stop = ()=>{
-    if(runtimes[s.id] && runtimes[s.id].stop) runtimes[s.id].stop();
-    if(el) el.style.display = ''; // restore (no-op)
+  // --- Run Code
+  document.getElementById("runCode").onclick=()=>{
+    if(!selected){alert("Select a sprite first");return;}
+    const code=codeArea.value;
+    scripts.set(selected,code);
+    try{
+      const func=new Function("sprite",code);
+      func(selected);
+    }catch(err){alert("Error: "+err.message);}
   };
 
-  return { run, stop };
-}
-
-function startPlay(){
-  if(isPlaying) return;
-  isPlaying = true; modeLabel.textContent = 'Play';
-  document.getElementById('playBtn').style.display='none';
-  document.getElementById('stopBtn').style.display='inline-block';
-  // create runners for each sprite and run them
-  runtimes = {};
-  for(const s of project.sprites){
-    const runner = buildRunnerForSprite(s);
-    if(runner && runner.run) runner.run();
-  }
-}
-
-function stopPlay(){
-  if(!isPlaying) return;
-  isPlaying = false; modeLabel.textContent = 'Edit';
-  document.getElementById('playBtn').style.display='inline-block';
-  document.getElementById('stopBtn').style.display='none';
-  // stop all runtimes
-  Object.values(runtimes).forEach(r=>{ try{ r.stop(); }catch(e){} });
-  runtimes = {};
-  // on stop, re-render positions from model to DOM to reset any transient changes (optional)
-  project.sprites.forEach(s=>{
-    const el = stage.querySelector(`.sprite[data-id="${s.id}"]`);
-    if(el){
-      el.style.left = (s.x||0) + 'px';
-      el.style.top = (s.y||0) + 'px';
-      el.style.width = (s.w||64) + 'px';
-      el.style.height = (s.h||64) + 'px';
-      el.style.transform = `rotate(${s.rotation||0}deg) scale(${s.scale||1})`;
-      el.style.display = 'block';
-    }
-  });
-}
-
-document.getElementById('playBtn').addEventListener('click', ()=>{
-  saveModelFromDOM();
-  startPlay();
-});
-document.getElementById('stopBtn').addEventListener('click', stopPlay);
-
-/* ===== Save project model to storage as single current project (not gallery) ===== */
-document.getElementById('saveProject').addEventListener('click', ()=>{
-  saveModelFromDOM();
-  project.meta.title = project.meta.title || 'Project ' + new Date().toISOString();
-  saveToStorage();
-});
-
-/* ===== initialization ===== */
-(function init(){
-  // load latest saved project if exists
-  const saved = JSON.parse(localStorage.getItem('jerganProjectsV1')||'[]');
-  if(saved.length>0){
-    project = saved[0].project || project;
-    project.meta = saved[0].meta || project.meta;
-  } else {
-    // create example sprite by default
-    project.sprites.push({ id: uid(), x: 120, y: 120, w: 64, h: 64, src:null, isImage:false, name:'Circle', script:`async function onStart(){ await wait(200); for(let i=0;i<6;i++){ move(30,0); await wait(150);} }`, rotation:0, scale:1 });
-  }
-  rebuildStage();
-  renderHomeList();
-})();
-
-/* ===== helpers to build playable HTML (for opening in new window) ===== */
-function buildPlayHTML(proj){
-  // simple playable HTML that runs onStart/onClick/onUpdate just like in-editor
-  // embed images as data URIs already in model
-  const spritesHtml = proj.sprites.map(s=>{
-    const style = `left:${s.x}px;top:${s.y}px;width:${s.w}px;height:${s.h}px;position:absolute;${s.isImage?`background-image:url(${s.src});background-size:cover;border-radius:8px;`:'background:linear-gradient(135deg,#4c5bff,#6b8bff);border-radius:50%;'}`;
-    return `<div class="sprite" data-id="${s.id}" style="${style}"></div>`;
-  }).join('\n');
-  // include each sprite's script by id
-  const scripts = proj.sprites.map(s=>`(function(){ const el = document.querySelector('.sprite[data-id="${s.id}"]'); ${s.script||''}; if(typeof onStart==='function'){ try{ onStart(); }catch(e){console.warn(e);} } if(typeof onClick==='function'){ el.addEventListener('click', onClick);} if(typeof onUpdate==='function'){ let last=performance.now(); const loop=()=>{ const now=performance.now(); const dt=(now-last)/1000; last=now; try{ onUpdate(dt);}catch(e){}; requestAnimationFrame(loop);} requestAnimationFrame(loop);} })();`).join('\n');
-
-  return `<!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{margin:0;background:#000;overflow:hidden} .sprite{position:absolute;user-select:none}</style>
-</head><body>
-<div id="stage" style="position:relative;width:100vw;height:100vh">${spritesHtml}</div>
+  // --- Save Game
+  document.getElementById("saveGame").onclick=()=>{
+    const name=prompt("Enter a name for your game:");
+    if(!name)return;
+    const html=`<!DOCTYPE html><html><body style='margin:0;overflow:hidden;background:black;'>${stage.innerHTML}
 <script>
-function wait(ms){return new Promise(r=>setTimeout(r,ms));}
-function moveEl(el,dx,dy){el.style.left = (parseFloat(el.style.left)||0) + dx + 'px'; el.style.top = (parseFloat(el.style.top)||0) + dy + 'px';}
-${scripts}
-</script>
-</body></html>`;
-}
+document.querySelectorAll('.sprite').forEach((s,i)=>{
+  s.style.position='absolute';
+  s.style.cursor='move';
+  ${Array.from(scripts.entries()).map(([el,code],i)=>`if(i==${i}){try{(new Function('sprite',\`${code.replace(/`/g,'\\`')}\`))(s);}catch(e){console.error(e)}}`).join(";")}
+});
+<\/script></body></html>`;
+    const games=JSON.parse(localStorage.getItem("jerganGames")||"[]");
+    games.push({name,code:html});
+    localStorage.setItem("jerganGames",JSON.stringify(games));
+    alert("Game saved!");
+    showHome();
+  };
 
-</script>
+  // --- Load Games
+  function loadGames(){
+    gameList.innerHTML="";
+    const games=JSON.parse(localStorage.getItem("jerganGames")||"[]");
+    if(!games.length){gameList.innerHTML="<p>No games yet. Click 'New Project' to start.</p>";return;}
+    games.forEach((g,i)=>{
+      const div=document.createElement("div");
+      div.className="card";
+      div.innerHTML=`<h3>${g.name}</h3><button onclick='playGame(${i})'>▶ Play</button>`;
+      gameList.appendChild(div);
+    });
+  }
 
+  // --- Play Game
+  window.playGame=(i)=>{
+    const games=JSON.parse(localStorage.getItem("jerganGames")||"[]");
+    const blob=new Blob([games[i].code],{type:"text/html"});
+    const url=URL.createObjectURL(blob);
+    window.open(url,"_blank");
+  };
+
+  loadGames();
+});
+</script>
 </body>
 </html>
