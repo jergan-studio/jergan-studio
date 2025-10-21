@@ -1,144 +1,478 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jergan Studio</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: radial-gradient(circle at center, #0e0e0e, #000);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    header {
-      background-color: #111;
-      padding: 15px 25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    header h1 {
-      font-size: 1.5rem;
-      color: #4c5bff;
-      margin: 0;
-    }
-
-    nav a {
-      color: #ccc;
-      text-decoration: none;
-      margin: 0 10px;
-      transition: color 0.3s;
-    }
-
-    nav a:hover {
-      color: #fff;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    main h2 {
-      font-size: 2.2rem;
-      margin-bottom: 15px;
-      text-shadow: 0 0 20px rgba(76, 91, 255, 0.8);
-    }
-
-    main p {
-      max-width: 700px;
-      color: #ccc;
-      font-size: 1.1rem;
-      line-height: 1.6;
-    }
-
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      margin-top: 40px;
-      width: 100%;
-      max-width: 900px;
-    }
-
-    .card {
-      background-color: #1b1b1b;
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 0 15px rgba(76, 91, 255, 0.2);
-      transition: 0.3s;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 0 25px rgba(76, 91, 255, 0.4);
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      background-color: #0a0a0a;
-      color: #666;
-      font-size: 0.9rem;
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jergan Studio — Simple Game Maker</title>
+<style>
+  :root{
+    --bg:#0b0b0f;
+    --panel:#0f0f13;
+    --muted:#9aa0b0;
+    --accent:#4c5bff;
+    --card:#141418;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:radial-gradient(circle at 20% 10%, #0f1220, #060608);color:#e6eefc;font-family:Inter,Segoe UI,Arial;}
+  header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-bottom:1px solid rgba(255,255,255,0.02)}
+  header h1{margin:0;font-size:18px;color:var(--accent)}
+  .container{display:flex;height:calc(100vh - 58px)}
+  .sidebar{width:320px;background:var(--panel);padding:16px;overflow:auto;border-right:1px solid rgba(255,255,255,0.02)}
+  .stage-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px}
+  .stage{background:linear-gradient(180deg,#0b0b0f,#000);width:900px;height:560px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.7);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,0.03)}
+  .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+  button{background:var(--accent);border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+  .section{background:var(--card);padding:12px;border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.02)}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type="text"], input[type="number"], select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#fff;margin-bottom:8px}
+  .sprite-list{display:flex;flex-direction:column;gap:10px}
+  .sprite-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:8px;background:rgba(255,255,255,0.01);cursor:pointer}
+  .sprite-item img{width:48px;height:48px;object-fit:contain;border-radius:6px;background:#0a0a0a}
+  .muted{color:var(--muted);font-size:13px}
+  .row{display:flex;gap:8px;align-items:center}
+  .checkbox{display:flex;gap:8px;align-items:center}
+  textarea{width:100%;height:120px;background:transparent;color:#fff;border-radius:8px;border:1px solid rgba(255,255,255,0.03);padding:8px}
+  .toast{position:fixed;right:18px;bottom:18px;background:#1d1d1f;padding:10px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);color:#d7e0ff}
+  .small{font-size:12px;color:var(--muted)}
+  .stage .sprite{position:absolute;touch-action:none;user-select:none;cursor:grab}
+  .stage .sprite.dragging{cursor:grabbing;opacity:0.85}
+  .topbar{display:flex;gap:8px;align-items:center}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  .split{display:flex;gap:8px}
+</style>
 </head>
 <body>
-  <header>
-    <h1>Jergan Studio</h1>
-    <nav>
-      <a href="#home">Home</a>
-      <a href="#projects">Projects</a>
-      <a href="#about">About</a>
-    </nav>
-  </header>
+<header>
+  <h1>Jergan Studio — Simple Maker</h1>
+  <div class="topbar">
+    <button id="btnSave">Save</button>
+    <button id="btnShare">Share</button>
+    <button id="btnNew" class="ghost">New</button>
+    <button id="btnPlay">Play</button>
+    <button id="btnStop" class="ghost" style="display:none">Stop</button>
+  </div>
+</header>
 
-  <main id="home">
-    <h2>Welcome to Jergan Studio</h2>
-    <p>
-      Jergan Studio is your creative hub for interactive web experiments,
-      Scratch-inspired games, and digital art experiences. Explore our work
-      below and see what’s coming next!
-    </p>
+<div class="container">
+  <aside class="sidebar">
+    <div class="section">
+      <label>Add Sprite (image)</label>
+      <div class="row">
+        <input id="fileSprite" type="file" accept="image/*">
+      </div>
+      <div class="hint">Or add a default sprite:</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="addDefault">Add Default</button>
+        <button id="addSquare" class="ghost">Add Square</button>
+      </div>
+    </div>
 
-    <section class="features" id="projects">
-      <div class="card">
-        <h3>🎮 Sonic: Overworld Memory</h3>
-        <p>A Scratch-inspired adventure game with unique overworld mechanics and vibrant pixel art.</p>
+    <div class="section">
+      <label>Sprites</label>
+      <div id="spriteList" class="sprite-list"></div>
+      <div class="hint">Click a sprite to edit its properties. Drag on the stage to move sprites in Edit mode.</div>
+    </div>
+
+    <div id="propsPanel" class="section" style="display:none">
+      <label>Properties</label>
+      <input id="propName" type="text" placeholder="Sprite name">
+      <div class="split">
+        <div style="flex:1"><label>X</label><input id="propX" type="number"></div>
+        <div style="flex:1"><label>Y</label><input id="propY" type="number"></div>
+      </div>
+      <div class="split">
+        <div style="flex:1"><label>Width</label><input id="propW" type="number"></div>
+        <div style="flex:1"><label>Height</label><input id="propH" type="number"></div>
       </div>
 
-      <div class="card">
-        <h3>⚡ Forsaken UST Soundtrack</h3>
-        <p>An original soundtrack inspired by electricity, chaos, and color — crafted for Jergan's next-gen game.</p>
-      </div>
+      <label>Behaviors</label>
+      <div class="checkbox"><input id="behaveLeft" type="checkbox"><label class="small">Move Left</label><input id="speedLeft" type="number" step="1" value="2" style="width:70px;margin-left:auto"></div>
+      <div class="checkbox"><input id="behaveRight" type="checkbox"><label class="small">Move Right</label><input id="speedRight" type="number" step="1" value="2" style="width:70px;margin-left:auto"></div>
+      <div class="checkbox"><input id="behaveJump" type="checkbox"><label class="small">Jump (single impulse)</label><input id="jumpPower" type="number" step="1" value="8" style="width:70px;margin-left:auto"></div>
+      <div class="checkbox"><input id="behaveSpin" type="checkbox"><label class="small">Spin</label><input id="spinSpeed" type="number" step="1" value="6" style="width:70px;margin-left:auto"></div>
 
-      <div class="card">
-        <h3>🧠 Jergan Extra</h3>
-        <p>Experimental Scratch-like environment for building and testing sprite logic in real time.</p>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="btnUpdate">Update</button>
+        <button id="btnDelete" class="ghost">Delete</button>
       </div>
+    </div>
 
-      <div class="card">
-        <h3>🌐 Web Tools</h3>
-        <p>Coming soon: a suite of online utilities built with creativity and simplicity in mind.</p>
+    <div class="section">
+      <label>Project JSON</label>
+      <textarea id="projectJson" readonly></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="btnExport">Copy JSON</button>
+        <button id="btnLoadJson" class="ghost">Load JSON</button>
       </div>
-    </section>
-  </main>
+    </div>
+  </aside>
 
-  <footer>© 2025 Jergan Studio — All Rights Reserved</footer>
+  <div class="stage-wrap">
+    <div class="controls">
+      <div class="muted">Mode:</div>
+      <button id="modeEdit" class="ghost">Edit</button>
+      <button id="modeTest">Test</button>
+      <div style="flex:1"></div>
+      <div class="muted">Tip: drag sprites on stage in Edit mode.</div>
+    </div>
+
+    <div id="stage" class="stage"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+/* ---------------------------
+  Simple Game Maker v1
+  - All project state is kept in `project`
+  - Share URL uses ?project=<base64>
+----------------------------*/
+const stage = document.getElementById('stage');
+const spriteListEl = document.getElementById('spriteList');
+const propsPanel = document.getElementById('propsPanel');
+const projectJson = document.getElementById('projectJson');
+const toastEl = document.getElementById('toast');
+
+let project = {sprites: [], meta:{name:'Jergan Project', created:Date.now()}};
+let selectedSpriteId = null;
+let mode = 'edit'; // edit | test
+let playing = false;
+let lastTick = 0;
+
+// helpers for encoding/decoding Unicode-safe base64
+function encodeBase64Unicode(str){
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function decodeBase64Unicode(b64){
+  try {
+    return decodeURIComponent(escape(atob(b64)));
+  } catch(e){ return null; }
+}
+
+function showToast(text, timeout=2000){
+  toastEl.style.display='block'; toastEl.textContent = text;
+  setTimeout(()=>{ toastEl.style.display='none'; }, timeout);
+}
+
+// Persist/load localStorage
+function saveLocal(){ localStorage.setItem('jergan_project_v1', JSON.stringify(project)); showToast('Saved locally'); updateJsonView(); }
+function loadLocal(){ const p = localStorage.getItem('jergan_project_v1'); if(p){ project = JSON.parse(p); renderAll(); showToast('Loaded local project'); } }
+
+// New empty project
+function newProject(){ project = {sprites: [], meta:{name:'Jergan Project', created:Date.now()}}; selectedSpriteId=null; renderAll(); showToast('New project'); }
+
+// Add sprite from dataURL
+function addSpriteFromDataURL(dataURL, name='sprite'){
+  const id = 's'+Math.random().toString(36).slice(2,9);
+  const img = new Image();
+  img.onload = ()=>{
+    const sprite = {
+      id, name, x: (stage.clientWidth/2 - img.width/2), y: (stage.clientHeight/2 - img.height/2),
+      w: img.width, h: img.height, imgData: dataURL,
+      vx:0, vy:0, rotation:0,
+      behaviors:{left:false,right:false,jump:false,spin:false},
+      params:{speedLeft:2,speedRight:2,jumpPower:8,spinSpeed:6,hasJumped:false}
+    };
+    project.sprites.push(sprite);
+    renderAll();
+  };
+  img.src = dataURL;
+}
+
+// Create DOM sprite element
+function createSpriteElement(sprite){
+  const el = document.createElement('img');
+  el.className='sprite';
+  el.draggable=false;
+  el.dataset.id = sprite.id;
+  el.src = sprite.imgData;
+  el.style.left = sprite.x + 'px';
+  el.style.top = sprite.y + 'px';
+  el.style.width = sprite.w + 'px';
+  el.style.height = sprite.h + 'px';
+  el.style.transform = `rotate(${sprite.rotation}deg)`;
+  el.style.transition = 'transform 0.05s linear';
+  return el;
+}
+
+// Render stage and sidebar
+function renderAll(){
+  // stage
+  stage.innerHTML = '';
+  project.sprites.forEach(s=>{
+    const el = createSpriteElement(s);
+    stage.appendChild(el);
+    // pointer events for dragging (edit mode only)
+    attachDragHandlers(el);
+  });
+  // sprite list
+  spriteListEl.innerHTML='';
+  project.sprites.forEach(s=>{
+    const item = document.createElement('div');
+    item.className='sprite-item';
+    item.dataset.id=s.id;
+    item.innerHTML = `<img src="${s.imgData}"><div style="flex:1"><div style="font-weight:600">${s.name}</div><div class="muted">x:${Math.round(s.x)} y:${Math.round(s.y)}</div></div><div class="muted">beh:${Object.keys(s.behaviors).filter(k=>s.behaviors[k]).length}</div>`;
+    item.onclick = ()=>{ selectSprite(s.id); };
+    spriteListEl.appendChild(item);
+  });
+  updateJsonView();
+  hidePropsIfNone();
+}
+
+// select sprite & show props
+function selectSprite(id){
+  selectedSpriteId = id;
+  const s = project.sprites.find(x=>x.id===id);
+  if(!s) return;
+  propsPanel.style.display='block';
+  document.getElementById('propName').value = s.name;
+  document.getElementById('propX').value = Math.round(s.x);
+  document.getElementById('propY').value = Math.round(s.y);
+  document.getElementById('propW').value = Math.round(s.w);
+  document.getElementById('propH').value = Math.round(s.h);
+  document.getElementById('behaveLeft').checked = !!s.behaviors.left;
+  document.getElementById('behaveRight').checked = !!s.behaviors.right;
+  document.getElementById('behaveJump').checked = !!s.behaviors.jump;
+  document.getElementById('behaveSpin').checked = !!s.behaviors.spin;
+  document.getElementById('speedLeft').value = s.params.speedLeft || 2;
+  document.getElementById('speedRight').value = s.params.speedRight || 2;
+  document.getElementById('jumpPower').value = s.params.jumpPower || 8;
+  document.getElementById('spinSpeed').value = s.params.spinSpeed || 6;
+  highlightSelectedInStage();
+}
+
+function hidePropsIfNone(){ if(!selectedSpriteId) propsPanel.style.display='none'; }
+
+// update properties from UI
+function applyPropsToSelected(){
+  if(!selectedSpriteId) return;
+  const s = project.sprites.find(x=>x.id===selectedSpriteId);
+  if(!s) return;
+  s.name = document.getElementById('propName').value || s.name;
+  s.x = parseFloat(document.getElementById('propX').value) || s.x;
+  s.y = parseFloat(document.getElementById('propY').value) || s.y;
+  s.w = Math.max(8, parseFloat(document.getElementById('propW').value) || s.w);
+  s.h = Math.max(8, parseFloat(document.getElementById('propH').value) || s.h);
+  s.behaviors.left = document.getElementById('behaveLeft').checked;
+  s.behaviors.right = document.getElementById('behaveRight').checked;
+  s.behaviors.jump = document.getElementById('behaveJump').checked;
+  s.behaviors.spin = document.getElementById('behaveSpin').checked;
+  s.params.speedLeft = parseFloat(document.getElementById('speedLeft').value) || 2;
+  s.params.speedRight = parseFloat(document.getElementById('speedRight').value) || 2;
+  s.params.jumpPower = parseFloat(document.getElementById('jumpPower').value) || 8;
+  s.params.spinSpeed = parseFloat(document.getElementById('spinSpeed').value) || 6;
+  // update DOM
+  renderAll();
+  saveLocal();
+}
+
+// delete selected
+function deleteSelected(){
+  if(!selectedSpriteId) return;
+  project.sprites = project.sprites.filter(s=>s.id!==selectedSpriteId);
+  selectedSpriteId = null; propsPanel.style.display='none';
+  renderAll();
+  saveLocal();
+}
+
+// drag handlers for stage sprites
+function attachDragHandlers(el){
+  let dragging=false, offsetX=0, offsetY=0;
+  const id = el.dataset.id;
+  el.addEventListener('pointerdown', (e)=>{
+    if(mode !== 'edit') return;
+    dragging=true;
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('dragging');
+    const rect = el.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+  });
+  window.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    const rect = stage.getBoundingClientRect();
+    let nx = e.clientX - rect.left - offsetX;
+    let ny = e.clientY - rect.top - offsetY;
+    // clamp
+    nx = Math.max(0, Math.min(nx, stage.clientWidth - 8));
+    ny = Math.max(0, Math.min(ny, stage.clientHeight - 8));
+    const s = project.sprites.find(x=>x.id===id);
+    if(s){ s.x = nx; s.y = ny; updateSpriteDom(s); }
+  });
+  window.addEventListener('pointerup', (e)=>{
+    if(!dragging) return;
+    dragging=false;
+    el.classList.remove('dragging');
+    // update sidebar info
+    renderAll();
+    saveLocal();
+  });
+  el.addEventListener('dblclick', ()=>{ selectSprite(id); });
+}
+
+// update DOM position/size for one sprite
+function updateSpriteDom(s){
+  const el = stage.querySelector(`.sprite[data-id="${s.id}"]`);
+  if(!el) return;
+  el.style.left = s.x + 'px';
+  el.style.top = s.y + 'px';
+  el.style.width = s.w + 'px';
+  el.style.height = s.h + 'px';
+  el.style.transform = `rotate(${s.rotation||0}deg)`;
+}
+
+// Play/test loop (very simple physics)
+function startPlaying(){
+  if(playing) return;
+  playing = true;
+  document.getElementById('btnPlay').style.display='none';
+  document.getElementById('btnStop').style.display='inline-block';
+  lastTick = performance.now();
+  // reset velocities
+  project.sprites.forEach(s=>{ s.vx=0; s.vy=0; s.params.hasJumped=false; });
+  requestAnimationFrame(tick);
+}
+
+function stopPlaying(){
+  playing=false;
+  document.getElementById('btnPlay').style.display='inline-block';
+  document.getElementById('btnStop').style.display='none';
+  // reset rotations
+  project.sprites.forEach(s=>{ s.rotation = s.rotation || 0; updateSpriteDom(s); });
+  renderAll();
+}
+
+function tick(now){
+  const dt = Math.min(0.05, (now - lastTick)/1000);
+  lastTick = now;
+  // simple ground
+  const groundY = stage.clientHeight - 10;
+  project.sprites.forEach(s=>{
+    // behaviors
+    if(s.behaviors.left) s.vx = -Math.abs(s.params.speedLeft || 2);
+    else if(s.behaviors.right) s.vx = Math.abs(s.params.speedRight || 2);
+    else s.vx *= 0.9;
+
+    if(s.behaviors.jump && !s.params.hasJumped){
+      s.vy = -Math.abs(s.params.jumpPower || 8);
+      s.params.hasJumped = true;
+    }
+
+    // gravity
+    s.vy += 18 * dt; // gravity constant
+    // integrate
+    s.x += s.vx * 30 * dt;
+    s.y += s.vy * 30 * dt;
+
+    // floor collision
+    if(s.y + s.h > groundY){
+      s.y = groundY - s.h;
+      s.vy = 0;
+    }
+
+    // spin
+    if(s.behaviors.spin){ s.rotation = (s.rotation || 0) + ((s.params.spinSpeed||6) * 10 * dt); }
+
+    // clamp to stage
+    s.x = Math.max(0, Math.min(s.x, stage.clientWidth - s.w));
+    s.y = Math.max(0, Math.min(s.y, stage.clientHeight - s.h));
+
+    updateSpriteDom(s);
+  });
+
+  // continue
+  if(playing) requestAnimationFrame(tick);
+}
+
+// UI wiring
+document.getElementById('fileSprite').addEventListener('change', (e)=>{
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=> addSpriteFromDataURL(reader.result, f.name);
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+document.getElementById('addDefault').addEventListener('click', ()=>{
+  // tiny default sprite (dataURI)
+  const data = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="30" fill="#4c5bff"/></svg>`);
+  addSpriteFromDataURL(data, 'circle');
+});
+document.getElementById('addSquare').addEventListener('click', ()=>{
+  const data = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="56" height="56" x="4" y="4" rx="8" fill="#ff6b6b"/></svg>`);
+  addSpriteFromDataURL(data, 'square');
+});
+
+document.getElementById('btnUpdate').addEventListener('click', ()=>{ applyPropsToSelected(); showToast('Updated sprite'); });
+document.getElementById('btnDelete').addEventListener('click', ()=>{ deleteSelected(); showToast('Deleted'); });
+
+document.getElementById('btnSave').addEventListener('click', ()=>{ saveLocal(); });
+document.getElementById('btnNew').addEventListener('click', ()=>{ if(confirm('Create new project? Unsaved changes will be lost.')) newProject(); });
+document.getElementById('btnPlay').addEventListener('click', ()=>{ mode='test'; startPlaying(); });
+document.getElementById('btnStop').addEventListener('click', ()=>{ stopPlaying(); mode='edit'; });
+
+document.getElementById('modeEdit').addEventListener('click', ()=>{ mode='edit'; stopPlaying(); showToast('Edit mode'); });
+document.getElementById('modeTest').addEventListener('click', ()=>{ mode='test'; startPlaying(); showToast('Test mode'); });
+
+document.getElementById('btnExport').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(JSON.stringify(project, null, 2)).then(()=> showToast('Project JSON copied'));
+});
+
+document.getElementById('btnLoadJson').addEventListener('click', ()=>{
+  const txt = prompt('Paste project JSON here');
+  if(!txt) return;
+  try{ const p = JSON.parse(txt); project = p; renderAll(); saveLocal(); showToast('Loaded JSON'); }
+  catch(e){ alert('Invalid JSON'); }
+});
+
+document.getElementById('btnShare').addEventListener('click', ()=>{
+  const json = JSON.stringify(project);
+  const encoded = encodeBase64Unicode(json);
+  const url = location.origin + location.pathname + '?project=' + encoded;
+  navigator.clipboard.writeText(url).then(()=> showToast('Share link copied'));
+});
+
+// copy JSON view too
+projectJson.addEventListener('click', ()=>{ navigator.clipboard.writeText(projectJson.value); showToast('Copied JSON'); });
+
+// update JSON view
+function updateJsonView(){ projectJson.value = JSON.stringify(project, null, 2); }
+
+// load project from URL param
+function loadFromURL(){
+  const params = new URLSearchParams(location.search);
+  const p = params.get('project');
+  if(!p) return false;
+  const decoded = decodeBase64Unicode(p);
+  if(!decoded) return false;
+  try{ project = JSON.parse(decoded); renderAll(); showToast('Loaded project from URL'); return true; }catch(e){ console.warn(e); return false; }
+}
+
+// highlight selected
+function highlightSelectedInStage(){
+  stage.querySelectorAll('.sprite').forEach(el=>{
+    if(el.dataset.id === selectedSpriteId) el.style.outline = '3px solid rgba(76,91,255,0.35)';
+    else el.style.outline = 'none';
+  });
+}
+
+// initialize
+(function init(){
+  // attempt load from URL project, else local, else default
+  if(!loadFromURL()){
+    const local = localStorage.getItem('jergan_project_v1');
+    if(local){ try{ project = JSON.parse(local); }catch(e){ project = {sprites: []}; } }
+    if(project.sprites.length===0){
+      // add a sample sprite
+      const data = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#111"/><circle cx="48" cy="48" r="34" fill="#4c5bff"/></svg>`);
+      addSpriteFromDataURL(data,'starter');
+    } else renderAll();
+  }
+  // wire window resize to re-render positions/clamp
+  window.addEventListener('resize',()=> renderAll());
+})();
+</script>
 </body>
 </html>
