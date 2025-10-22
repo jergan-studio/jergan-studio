@@ -81,6 +81,42 @@ textarea {
   border-radius: 5px;
   padding: 8px;
 }
+/* Version badge */
+#version {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(76, 91, 255, 0.7);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px #000;
+  z-index: 1000;
+  cursor: pointer;
+}
+#versionPopup {
+  display: none;
+  position: fixed;
+  bottom: 50px;
+  right: 10px;
+  width: 200px;
+  background: rgba(0,0,0,0.9);
+  border: 2px solid #4c5bff;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  color: #fff;
+  text-align: left;
+  z-index: 1001;
+}
+#versionPopup button {
+  display: block;
+  margin-top: 10px;
+  width: 100%;
+  background: #6473ff;
+}
 </style>
 </head>
 <body>
@@ -112,6 +148,18 @@ textarea {
   <button class="mobileBtn" onclick="simulateKey('ArrowUp')">⬆️</button>
   <button class="mobileBtn" onclick="simulateKey('ArrowDown')">⬇️</button>
   <button class="mobileBtn" onclick="simulateKey('ArrowRight')">➡️</button>
+</div>
+
+<!-- Version badge -->
+<div id="version" onclick="toggleVersion()">v.1.0</div>
+<div id="versionPopup">
+  <b>Jergan Studio v1.0</b><br>
+  - Home + Editor in one page<br>
+  - Sprite editor & upload<br>
+  - Keyboard & mobile controls<br>
+  - Local save & load<br>
+  - Cloud save placeholder<br>
+  <button onclick="toggleVersion()">Close</button>
 </div>
 
 <script>
@@ -238,8 +286,12 @@ function loadProject() {
 // === Cloud Save (Firebase-ready) ===
 function saveCloud() {
   alert("Cloud save is ready! Add your Firebase config in the next version.");
-  // Example Firebase usage:
-  // firebase.database().ref("projects/username").set(data);
+}
+
+// === Version badge popup ===
+function toggleVersion() {
+  const popup = document.getElementById("versionPopup");
+  popup.style.display = popup.style.display === "block" ? "none" : "block";
 }
 </script>
 
