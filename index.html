@@ -5,180 +5,243 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jergan Studio</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:'Segoe UI',sans-serif;background:#0d0d0d;color:white}
-header{background:#111;padding:15px 25px;display:flex;justify-content:space-between;align-items:center}
-header h1{margin:0;color:#4c5bff}nav a{color:#ccc;text-decoration:none;margin-left:15px}nav a:hover{color:white}
-button{background:#4c5bff;color:white;border:none;padding:10px 20px;border-radius:8px;font-size:15px;cursor:pointer;transition:.2s}button:hover{background:#3b48cc}
-main{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:calc(100vh - 70px)}
-.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;width:90%;max-width:900px;margin-top:30px}
-.card{background:#1a1a1a;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(76,91,255,0.2)}.card h3{margin:0 0 10px}
-#editorPage{display:none;flex-direction:column;height:100vh}
-#toolbar{background:#111;padding:10px;display:flex;justify-content:space-between;align-items:center}
-#stage{flex:1;margin:10px auto;background:#1a1a1a;border:2px solid #4c5bff;width:800px;height:480px;position:relative;overflow:hidden}
-.sprite{width:64px;height:64px;border-radius:50%;background:#ff4747;position:absolute;cursor:move;user-select:none}
-#codeArea{width:100%;height:150px;background:#111;color:#0f0;font-family:monospace;border:none;padding:10px;resize:none}
-footer{text-align:center;padding:10px;background:#0a0a0a;color:#777}
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: radial-gradient(circle at center, #101020, #000);
+  color: white;
+  overflow: hidden;
+}
+header {
+  background: rgba(0,0,0,0.8);
+  text-align: center;
+  padding: 10px;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 0 0 10px #4c5bff;
+}
+#home, #editor {
+  display: none;
+  text-align: center;
+  padding: 20px;
+}
+button {
+  background: #4c5bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 8px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+button:hover {
+  background: #6473ff;
+}
+#stage {
+  width: 90vw;
+  height: 60vh;
+  background: #111;
+  border: 2px solid #333;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+.sprite {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  position: absolute;
+  background: #4c5bff;
+}
+#mobileControls {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.mobileBtn {
+  width: 60px;
+  height: 60px;
+  margin: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid #4c5bff;
+  color: white;
+  font-size: 24px;
+}
+textarea {
+  width: 90%;
+  height: 100px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 8px;
+}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Jergan Studio</h1>
-  <nav>
-    <a href="#" id="homeLink">Home</a>
-    <a href="#" id="editorLink">Editor</a>
-  </nav>
-</header>
+<header>Jergan Studio</header>
 
-<!-- HOME -->
-<main id="homePage">
+<div id="home">
   <h2>Welcome to Jergan Studio</h2>
-  <p>Create and share browser-based games.</p>
-  <button id="newProject">🎮 New Project</button>
-  <div id="gameList" class="games"></div>
-</main>
-
-<!-- EDITOR -->
-<div id="editorPage">
-  <div id="toolbar">
-    <div>
-      <button id="addCircle">Add Circle</button>
-      <button id="uploadSprite">Upload Sprite</button>
-      <button id="runCode">▶ Run Code</button>
-      <button id="saveGame">💾 Save Game</button>
-    </div>
-    <button id="goHome">🏠 Home</button>
-  </div>
-  <div id="stage"></div>
-  <textarea id="codeArea" placeholder="// Write code for the selected sprite here"></textarea>
+  <button onclick="openEditor()">New Project</button>
+  <button onclick="loadProject()">Load Local Save</button>
 </div>
 
-<footer>© 2025 Jergan Studio</footer>
+<div id="editor">
+  <div>
+    <button onclick="addCircle()">Add Circle</button>
+    <button onclick="uploadSprite()">Upload Sprite</button>
+    <button onclick="runGame()">Play</button>
+    <button onclick="saveLocal()">Save Local</button>
+    <button onclick="saveCloud()">Upload to Cloud</button>
+    <button onclick="backHome()">Back to Home</button>
+  </div>
+  <div id="stage"></div>
+  <h3>Scripting</h3>
+  <textarea id="scriptArea" placeholder="Example: whenKey('ArrowRight', () => move(10, 0));"></textarea>
+</div>
+
+<div id="mobileControls">
+  <button class="mobileBtn" onclick="simulateKey('ArrowLeft')">⬅️</button>
+  <button class="mobileBtn" onclick="simulateKey('ArrowUp')">⬆️</button>
+  <button class="mobileBtn" onclick="simulateKey('ArrowDown')">⬇️</button>
+  <button class="mobileBtn" onclick="simulateKey('ArrowRight')">➡️</button>
+</div>
 
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
-  const home=document.getElementById("homePage");
-  const editor=document.getElementById("editorPage");
-  const stage=document.getElementById("stage");
-  const codeArea=document.getElementById("codeArea");
-  const gameList=document.getElementById("gameList");
-  let selected=null;
-  const scripts=new Map();
+// === UI Navigation ===
+const home = document.getElementById("home");
+const editor = document.getElementById("editor");
+const stage = document.getElementById("stage");
+const scriptArea = document.getElementById("scriptArea");
+const mobileControls = document.getElementById("mobileControls");
+let sprites = [];
+let activeSprite = null;
 
-  // --- Navigation
-  function showHome(){home.style.display="flex";editor.style.display="none";loadGames();}
-  function showEditor(){home.style.display="none";editor.style.display="flex";stage.innerHTML="";scripts.clear();selected=null;codeArea.value="";}
-  document.getElementById("homeLink").onclick=e=>{e.preventDefault();showHome();}
-  document.getElementById("editorLink").onclick=e=>{e.preventDefault();showEditor();}
-  document.getElementById("newProject").onclick=showEditor;
-  document.getElementById("goHome").onclick=showHome;
-
-  // --- Draggable Sprites
-  function makeDraggable(el){
-    let drag=false,ox=0,oy=0;
-    el.onmousedown=e=>{drag=true;ox=e.offsetX;oy=e.offsetY;selectSprite(el);}
-    document.onmouseup=()=>drag=false;
-    document.onmousemove=e=>{
-      if(!drag)return;
-      const rect=stage.getBoundingClientRect();
-      el.style.left=e.clientX-rect.left-ox+"px";
-      el.style.top=e.clientY-rect.top-oy+"px";
-    };
+window.onload = () => {
+  home.style.display = "block";
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    mobileControls.style.display = "block";
   }
-  function selectSprite(el){
-    selected=el;
-    document.querySelectorAll(".sprite").forEach(s=>s.style.outline="none");
-    el.style.outline="2px solid #4c5bff";
-    codeArea.value=scripts.get(el)||"";
+};
+
+function openEditor() {
+  home.style.display = "none";
+  editor.style.display = "block";
+}
+
+function backHome() {
+  home.style.display = "block";
+  editor.style.display = "none";
+}
+
+// === Sprite Handling ===
+function addCircle() {
+  const sprite = document.createElement("div");
+  sprite.className = "sprite";
+  sprite.style.left = "100px";
+  sprite.style.top = "100px";
+  stage.appendChild(sprite);
+  sprites.push(sprite);
+  activeSprite = sprite;
+}
+
+function uploadSprite() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const url = URL.createObjectURL(file);
+    const sprite = document.createElement("div");
+    sprite.className = "sprite";
+    sprite.style.background = `url(${url}) center/cover`;
+    stage.appendChild(sprite);
+    sprites.push(sprite);
+    activeSprite = sprite;
+  };
+  input.click();
+}
+
+// === Scripting System ===
+function whenKey(key, callback) {
+  window.addEventListener("keydown", e => {
+    if (e.key === key) callback();
+  });
+}
+
+function move(x, y) {
+  if (!activeSprite) return;
+  const rect = activeSprite.getBoundingClientRect();
+  const sx = stage.getBoundingClientRect();
+  let nx = rect.left - sx.left + x;
+  let ny = rect.top - sx.top + y;
+  nx = Math.max(0, Math.min(nx, stage.clientWidth - rect.width));
+  ny = Math.max(0, Math.min(ny, stage.clientHeight - rect.height));
+  activeSprite.style.left = nx + "px";
+  activeSprite.style.top = ny + "px";
+}
+
+// Simulate keypresses for mobile arrows
+function simulateKey(key) {
+  const event = new KeyboardEvent("keydown", { key });
+  window.dispatchEvent(event);
+}
+
+// === Game Run ===
+function runGame() {
+  try {
+    eval(scriptArea.value);
+  } catch (err) {
+    alert("Script error: " + err.message);
   }
+}
 
-  // --- Add Circle
-  document.getElementById("addCircle").onclick=()=>{
-    const el=document.createElement("div");
-    el.className="sprite";
-    el.style.left=Math.random()*700+"px";
-    el.style.top=Math.random()*400+"px";
-    stage.appendChild(el);
-    makeDraggable(el);
+// === Local Save ===
+function saveLocal() {
+  const data = {
+    script: scriptArea.value,
+    sprites: sprites.map(s => ({
+      left: s.style.left,
+      top: s.style.top,
+      background: s.style.background
+    }))
   };
+  localStorage.setItem("jerganProject", JSON.stringify(data));
+  alert("Saved locally!");
+}
 
-  // --- Upload Sprite
-  document.getElementById("uploadSprite").onclick=()=>{
-    const input=document.createElement("input");
-    input.type="file";input.accept="image/*";
-    input.onchange=e=>{
-      const file=e.target.files[0];
-      if(!file)return;
-      const reader=new FileReader();
-      reader.onload=()=>{
-        const el=document.createElement("div");
-        el.className="sprite";
-        el.style.backgroundImage=`url(${reader.result})`;
-        el.style.backgroundSize="cover";
-        el.style.borderRadius="0";
-        el.style.left=Math.random()*700+"px";
-        el.style.top=Math.random()*400+"px";
-        stage.appendChild(el);
-        makeDraggable(el);
-      };
-      reader.readAsDataURL(file);
-    };
-    input.click();
-  };
+function loadProject() {
+  const data = JSON.parse(localStorage.getItem("jerganProject"));
+  if (!data) return alert("No local save found!");
+  openEditor();
+  stage.innerHTML = "";
+  sprites = [];
+  data.sprites.forEach(s => {
+    const sprite = document.createElement("div");
+    sprite.className = "sprite";
+    sprite.style.left = s.left;
+    sprite.style.top = s.top;
+    sprite.style.background = s.background;
+    stage.appendChild(sprite);
+    sprites.push(sprite);
+  });
+  scriptArea.value = data.script;
+}
 
-  // --- Run Code
-  document.getElementById("runCode").onclick=()=>{
-    if(!selected){alert("Select a sprite first");return;}
-    const code=codeArea.value;
-    scripts.set(selected,code);
-    try{
-      const func=new Function("sprite",code);
-      func(selected);
-    }catch(err){alert("Error: "+err.message);}
-  };
-
-  // --- Save Game
-  document.getElementById("saveGame").onclick=()=>{
-    const name=prompt("Enter a name for your game:");
-    if(!name)return;
-    const html=`<!DOCTYPE html><html><body style='margin:0;overflow:hidden;background:black;'>${stage.innerHTML}
-<script>
-document.querySelectorAll('.sprite').forEach((s,i)=>{
-  s.style.position='absolute';
-  s.style.cursor='move';
-  ${Array.from(scripts.entries()).map(([el,code],i)=>`if(i==${i}){try{(new Function('sprite',\`${code.replace(/`/g,'\\`')}\`))(s);}catch(e){console.error(e)}}`).join(";")}
-});
-<\/script></body></html>`;
-    const games=JSON.parse(localStorage.getItem("jerganGames")||"[]");
-    games.push({name,code:html});
-    localStorage.setItem("jerganGames",JSON.stringify(games));
-    alert("Game saved!");
-    showHome();
-  };
-
-  // --- Load Games
-  function loadGames(){
-    gameList.innerHTML="";
-    const games=JSON.parse(localStorage.getItem("jerganGames")||"[]");
-    if(!games.length){gameList.innerHTML="<p>No games yet. Click 'New Project' to start.</p>";return;}
-    games.forEach((g,i)=>{
-      const div=document.createElement("div");
-      div.className="card";
-      div.innerHTML=`<h3>${g.name}</h3><button onclick='playGame(${i})'>▶ Play</button>`;
-      gameList.appendChild(div);
-    });
-  }
-
-  // --- Play Game
-  window.playGame=(i)=>{
-    const games=JSON.parse(localStorage.getItem("jerganGames")||"[]");
-    const blob=new Blob([games[i].code],{type:"text/html"});
-    const url=URL.createObjectURL(blob);
-    window.open(url,"_blank");
-  };
-
-  loadGames();
-});
+// === Cloud Save (Firebase-ready) ===
+function saveCloud() {
+  alert("Cloud save is ready! Add your Firebase config in the next version.");
+  // Example Firebase usage:
+  // firebase.database().ref("projects/username").set(data);
+}
 </script>
+
 </body>
 </html>
